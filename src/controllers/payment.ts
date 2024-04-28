@@ -3,23 +3,26 @@ import Payment from "../models/payment"
 import User from '../models/user'
 import Contract from "../models/contract"
 import { convertToDate } from "../utils/dateUtil"
+import catchAsync from "../utils/catchAsync"
+import ApiError from "../utils/ApiError"
+import httpStatus from 'http-status-codes';
 
 
-const addNewPayment = (req: Request, res: Response) => {
+const addNewPayment = catchAsync((req: Request, res: Response) => {
     const { dueDate, expectedAmount, outstandingAmount, status, contract } = req.body
 
     //@ts-ignore
     const loggedInUser = req.user
     let newAddedPaymentData: any;
 
-    Contract.find({ _id: contract, user: loggedInUser._id}).then((contract) => {
+    return Contract.find({ _id: contract, user: loggedInUser._id }).then((contract) => {
         const payment = new Payment({
-           dueDate: convertToDate(dueDate),
-           expectedAmount,
-           outstandingAmount,
-           status,
-           contract,
-           user: loggedInUser._id
+            dueDate: convertToDate(dueDate),
+            expectedAmount,
+            outstandingAmount,
+            status,
+            contract,
+            user: loggedInUser._id
         })
         return payment.save()
     }).then((payment) => {
@@ -39,30 +42,25 @@ const addNewPayment = (req: Request, res: Response) => {
     }).then(() => {
         res.status(201).json(newAddedPaymentData)
     })
-        .catch((err: any) => {
-            console.error(err)
-        })
 
+})
 
-}
-
-const getPayment = (req: Request, res: Response) => {
+const getPayment = catchAsync((req: Request, res: Response) => {
     //@ts-ignore
     const loggedInUser = req.user
 
     const id = req.params.id;
-    Payment.find({ user: loggedInUser._id, _id: id }).then((payment) => res.status(200).json(payment)).catch((err) => console.log(err))
+    return Payment.findOne({ user: loggedInUser._id, _id: id }).then((payment) => { if (!payment) { throw new ApiError(httpStatus.NOT_FOUND, `paymeny id ${id} not found`) } res.status(200).json(payment) })
 
-}
+})
 
-const getPayments = (req: Request, res: Response) => {
+const getPayments = catchAsync((req: Request, res: Response) => {
     //@ts-ignore
     const loggedInUser = req.user
     const contractIds = (req.query.contractIds as string)?.split(",") || []
 
-    Payment.find({ user: loggedInUser._id, ...(contractIds.length && { "contract._id": { $in: contractIds } }) }).then((payment) => res.status(200).json(payment)).catch((err) => console.log(err))
-}
-
+    return Payment.find({ user: loggedInUser._id, ...(contractIds.length && { "contract._id": { $in: contractIds } }) }).then((payment) => res.status(200).json(payment))
+})
 
 
 export default { addNewPayment, getPayment, getPayments }

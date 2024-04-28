@@ -1,37 +1,33 @@
 import { Request, Response } from "express";
 import bcrypt from 'bcryptjs';
 import User from "../models/user";
+import catchAsync from "../utils/catchAsync";
+import httpStatus from 'http-status-codes';
+import ApiError from "../utils/ApiError";
 
-const getUserDetail = (req: Request, res: Response) => {
+const getUserDetail = catchAsync((req: Request, res: Response) => {
     const userId = req.params.userId;
-    User
-        .findById(userId)
-        .then(user => {
-            if (!user) {
-                const error = new Error('User not found');
-                const errorWIthStatusCode = Object.assign(error, { statusCode: 404 })
-                throw errorWIthStatusCode;
-            }
+    //@ts-ignores
+    const user = req.user
 
-            res
-                .status(200)
-                .json(user);
-        })
-        .catch((err: any) => {
-            err.statusCode = err.statusCode || 500;
-            console.error(err)
-        })
-}
+    if (userId != user._id.toString()) {
+        throw new ApiError(httpStatus.NOT_FOUND, `${userId} user not found`)
+    }
 
-const registerUser = (req: Request, res: Response) => {
+    res
+        .status(200)
+        .json(user);
+
+})
+
+const registerUser = catchAsync((req: Request, res: Response) => {
     const email = req.body.email
     const password = req.body.password
     const name = req.body.name
     const role = req.body.role
-    console.log("---register user", req.body)
 
     //encrypt password beforing storing in db
-    bcrypt.hash(password, 12).then((hashedPassword) => {
+    return bcrypt.hash(password, 12).then((hashedPassword) => {
         const user = new User({
             email: email,
             name: name,
@@ -47,40 +43,29 @@ const registerUser = (req: Request, res: Response) => {
         }
         res.status(201).json(userResponse);
     })
-        .catch((err: any) => {
-            err.statusCode = err.statusCode || 500;
-            console.error(err)
-        })
-}
+})
 
-const updatePassword = (req: Request, res: Response) => {
-    const userId = req.params.userId;
+const updatePassword = catchAsync((req: Request, res: Response) => {
     const password = req.body.password;
+    const currentPassword = req.body.currentPassword;
 
     const confirmPassword = req.body.confirmPassword;
     //TODO validation of request input
 
     let userDetail: any;
-
-    User
-        .findById(userId)
-        .then(user => {
-            if (!user) {
-                const error = new Error('User not found');
-                const errorWIthStatusCode = Object.assign(error, { statusCode: 404 })
-                throw errorWIthStatusCode;
-            }
-            userDetail = user
-            return bcrypt.hash(password, 12)
-        }).then((hashedPassword) => {
-            userDetail.password = hashedPassword
-            return userDetail.save()
-        })
-        .then(user => res.status(201).json(user))
-        .catch((err: any) => {
-            err.statusCode = err.statusCode || 500;
-            console.error(err)
-        })
-}
+    //@ts-ignore
+    userDetail = req.user
+    return bcrypt.compare(currentPassword, userDetail.password).then((isMatched) => {
+        if (!isMatched) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid current password")
+        }
+        return bcrypt.hash(password, 12)
+            .then((hashedPassword) => {
+                userDetail.password = hashedPassword
+                return userDetail.save()
+            })
+            .then(user => res.status(201).json(user))
+    })
+})
 
 export default { getUserDetail, registerUser, updatePassword }
