@@ -6,30 +6,29 @@ import { convertToDate } from "../utils/dateUtil"
 import catchAsync from "../utils/catchAsync"
 import ApiError from "../utils/ApiError"
 import httpStatus from 'http-status-codes';
+import { getSortAndPagination } from "../utils/util"
 
 
 const addNewPayment = catchAsync((req: Request, res: Response) => {
-    const { dueDate, expectedAmount, outstandingAmount, status, contract } = req.body
+    const { dueDate, expectedAmount, outstandingAmount, status, contract, userId } = req.body
 
-    //@ts-ignore
-    const loggedInUser = req.user
     let newAddedPaymentData: any;
 
-    return Contract.find({ _id: contract, user: loggedInUser._id }).then((contract) => {
+    return Contract.find({ _id: contract }).then((contract) => {
         const payment = new Payment({
             dueDate: convertToDate(dueDate),
             expectedAmount,
             outstandingAmount,
             status,
             contract,
-            user: loggedInUser._id
+            user: userId
         })
         return payment.save()
     }).then((payment) => {
         newAddedPaymentData = payment;
         return User.findOneAndUpdate(
             {
-                _id: loggedInUser._id,
+                _id: userId,
             },
             {
                 $addToSet: { 'contracts.RECIPIENT.$[elem].payments': payment._id }
@@ -58,8 +57,10 @@ const getPayments = catchAsync((req: Request, res: Response) => {
     //@ts-ignore
     const loggedInUser = req.user
     const contractIds = (req.query.contractIds as string)?.split(",") || []
+    const { skip, pageSize, sortObj } = getSortAndPagination(req);
 
-    return Payment.find({ user: loggedInUser._id, ...(contractIds.length && { "contract._id": { $in: contractIds } }) }).then((payment) => res.status(200).json(payment))
+
+    return Payment.find({ user: loggedInUser._id, ...(contractIds.length && { "contract._id": { $in: contractIds } }) }).sort(sortObj).skip(skip).limit(pageSize).then((payment) => res.status(200).json(payment))
 })
 
 

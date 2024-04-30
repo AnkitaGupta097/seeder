@@ -5,6 +5,7 @@ import { UserRole } from "../utils/enums";
 import catchAsync from "../utils/catchAsync";
 import ApiError from "../utils/ApiError";
 import httpStatus from 'http-status-codes';
+import { getSortAndPagination } from "../utils/util";
 
 
 const addNewContract = catchAsync((req: Request, res: Response) => {
@@ -49,7 +50,7 @@ const getUserContracts = catchAsync((req: Request, res: Response) => {
   if (loggedInUser.role === UserRole.PROVIDER) {
     res
       .status(200)
-      .json(loggedInUser.contracts?.PROVIDER);
+      .json(loggedInUser.contracts?.PROVIDER)
   } else {
     const filteredContracts = loggedInUser.contracts?.[UserRole.RECIPIENT].filter((contract: any) => {
       let result = true;
@@ -61,13 +62,15 @@ const getUserContracts = catchAsync((req: Request, res: Response) => {
       }
       return result
     })
+
     return User.populate(filteredContracts, {
       path: 'contractDetail',
-    }).then((contracts: any) => {
-      res
-        .status(200)
-        .json(contracts)
-    })
+    }).
+      then((contracts: any) => {
+        res
+          .status(200)
+          .json(contracts)
+      })
   }
 })
 

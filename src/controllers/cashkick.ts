@@ -6,7 +6,7 @@ import User from '../models/user'
 import catchAsync from "../utils/catchAsync"
 import ApiError from "../utils/ApiError"
 import httpStatus from 'http-status-codes';
-
+import { getSortAndPagination } from '../utils/util';
 
 const addNewCashkick = catchAsync((req: Request, res: Response) => {
     const { name, totalAmount, totalFinanced, contractIds } = req.body
@@ -57,9 +57,9 @@ const getCashkicks = catchAsync((req: Request, res: Response) => {
     //@ts-ignore
     const loggedInUser = req.user
     const contractIds = (req.query.contractIds as string)?.split(",") || []
+    const { skip, pageSize, sortObj } = getSortAndPagination(req);
 
-    return Cashkick.find({ user: loggedInUser._id, ...(contractIds.length && { "contracts": { $elemMatch: { "_id": { $in: contractIds } } } }) }).then((cashkicks) => res.status(200).json(cashkicks))
-
+    return Cashkick.find({ user: loggedInUser._id, ...(contractIds.length && { "contracts": { $elemMatch: { "_id": { $in: contractIds } } } }) }).sort(sortObj).skip(skip).limit(pageSize).then((cashkicks) => res.status(200).json(cashkicks))
 })
 
 

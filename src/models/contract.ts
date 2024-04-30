@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { contractType } from "../utils/enums";
 
 export const contractSchema = new mongoose.Schema({
-    name:{
+    name: {
         type: String,
         required: true,
     },
@@ -24,14 +24,16 @@ export const contractSchema = new mongoose.Schema({
         type: mongoose.Types.Decimal128,
         required: true
     },
-    totalAmount:{
+    totalAmount: {
         type: mongoose.Types.Decimal128,
         required: true,
     },
-    totalFinanced:{
+    totalFinanced: {
         type: mongoose.Types.Decimal128,
         required: true,
     }
+}, {
+    timestamps: true
 })
 
 
