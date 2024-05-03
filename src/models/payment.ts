@@ -16,7 +16,8 @@ export const paymentSchema = new mongoose.Schema({
         required: true
     },
     status: {
-        type: PaymentStatus,
+        type: String,
+        enum: PaymentStatus,
         required: true
     },
     contract: {

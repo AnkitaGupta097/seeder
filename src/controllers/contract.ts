@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import Contract from "../models/contract";
-import User, { userSchema } from "../models/user";
+import User from "../models/user";
 import { UserRole } from "../utils/enums";
+import catchAsync from "../utils/catchAsync";
+import ApiError from "../utils/ApiError";
+import httpStatus from 'http-status-codes';
 
-const addNewContract = (req: Request, res: Response) => {
+
+const addNewContract = catchAsync((req: Request, res: Response) => {
   const { name, termLength, type, termRate, totalAmount, totalFinanced, perPayment } = req.body
 
   //@ts-ignore
@@ -25,10 +29,7 @@ const addNewContract = (req: Request, res: Response) => {
       return contract
     }).then((newContract) => {
       contractOwner.contracts.PROVIDER.push(newContract)
-      contractOwner.save().catch((err: any) => {
-        err.statusCode = err.statusCode || 500;
-        console.error(err)
-      })
+      contractOwner.save();
       return User.updateMany({ role: UserRole.RECIPIENT },
         {
           $addToSet: {
@@ -36,13 +37,9 @@ const addNewContract = (req: Request, res: Response) => {
           }
         }, { multi: true })
     })
-    .catch((err: any) => {
-      err.statusCode = err.statusCode || 500;
-      console.error(err)
-    })
-}
+})
 
-const getUserContracts = (req: Request, res: Response) => {
+const getUserContracts = catchAsync((req: Request, res: Response) => {
   const status = req.query.status
   const cashkick = req.query.cashkick
 
@@ -64,21 +61,17 @@ const getUserContracts = (req: Request, res: Response) => {
       }
       return result
     })
-    User.populate(filteredContracts, {
+    return User.populate(filteredContracts, {
       path: 'contractDetail',
     }).then((contracts: any) => {
       res
         .status(200)
         .json(contracts)
     })
-      .catch((err: any) => {
-        err.statusCode = err.statusCode || 500;
-        console.error(err)
-      })
   }
-}
+})
 
-const getContractDetail = (req: Request, res: Response) => {
+const getContractDetail = catchAsync((req: Request, res: Response) => {
   const contractId = req.params.id
   const includeRef = (req.query.includes as string)?.split(",") || []
   includeRef.push("contractDetail")
@@ -91,12 +84,11 @@ const getContractDetail = (req: Request, res: Response) => {
   const filteredContract = loggedInUser.contracts?.[loggedInUser.role].find((contract: any) => contract.contractDetail == contractId)
 
   if (!filteredContract) {
-    // throw error
-    return
+    throw new ApiError(httpStatus.NOT_FOUND, "contract id not found")
   }
 
-  User.populate(filteredContract, pathsToInclude).then((contract) => res.status(200).json(contract)).catch((err) => console.error(err))
-}
+  return User.populate(filteredContract, pathsToInclude).then((contract) => res.status(200).json(contract))
+})
 
 
 export default { addNewContract, getContractDetail, getUserContracts }

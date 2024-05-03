@@ -3,16 +3,19 @@ import Cashkick from "../models/cashkick"
 import { CashkicksStatus, contractStatus } from "../utils/enums"
 import Contract from "../models/contract"
 import User from '../models/user'
+import catchAsync from "../utils/catchAsync"
+import ApiError from "../utils/ApiError"
+import httpStatus from 'http-status-codes';
 
 
-const addNewCashkick = (req: Request, res: Response) => {
+const addNewCashkick = catchAsync((req: Request, res: Response) => {
     const { name, totalAmount, totalFinanced, contractIds } = req.body
 
     //@ts-ignore
     const loggedInUser = req.user
     let newAddedCashkick: any;
 
-    Contract.find({ _id: { $in: contractIds } }).then((contracts) => {
+    return Contract.find({ _id: { $in: contractIds } }).then((contracts) => {
         const cashkick = new Cashkick({
             user: loggedInUser._id,
             name,
@@ -39,30 +42,25 @@ const addNewCashkick = (req: Request, res: Response) => {
     }).then(() => {
         res.status(201).json(newAddedCashkick)
     })
-        .catch((err: any) => {
-            console.error(err)
-        })
+})
 
-
-}
-
-const getCashkick = (req: Request, res: Response) => {
+const getCashkick = catchAsync((req: Request, res: Response) => {
     //@ts-ignore
     const loggedInUser = req.user
 
     const id = req.params.id;
-    Cashkick.find({ user: loggedInUser._id, _id: id }).then((cashkick) => res.status(200).json(cashkick)).catch((err) => console.log(err))
+    return Cashkick.find({ user: loggedInUser._id, _id: id }).then((cashkick) => { if (!cashkick) { throw new ApiError(httpStatus.NOT_FOUND, `cashkick id ${id} not found`) } res.status(200).json(cashkick) })
 
-}
+})
 
-const getCashkicks = (req: Request, res: Response) => {
+const getCashkicks = catchAsync((req: Request, res: Response) => {
     //@ts-ignore
     const loggedInUser = req.user
     const contractIds = (req.query.contractIds as string)?.split(",") || []
 
-    Cashkick.find({ user: loggedInUser._id, ...(contractIds.length && { "contracts": { $elemMatch: { "_id": { $in: contractIds } } } }) }).then((cashkicks) => res.status(200).json(cashkicks)).catch((err) => console.log(err))
+    return Cashkick.find({ user: loggedInUser._id, ...(contractIds.length && { "contracts": { $elemMatch: { "_id": { $in: contractIds } } } }) }).then((cashkicks) => res.status(200).json(cashkicks))
 
-}
+})
 
 
 
