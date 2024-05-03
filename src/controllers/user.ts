@@ -49,9 +49,6 @@ const updatePassword = catchAsync((req: Request, res: Response) => {
     const password = req.body.password;
     const currentPassword = req.body.currentPassword;
 
-    const confirmPassword = req.body.confirmPassword;
-    //TODO validation of request input
-
     let userDetail: any;
     //@ts-ignore
     userDetail = req.user

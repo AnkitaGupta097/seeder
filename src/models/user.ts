@@ -24,8 +24,10 @@ export const userSchema = new mongoose.Schema({
     },
     contracts: {
         [UserRole.PROVIDER]: { type: [contractSchema], required: false },
-        [UserRole.RECIPIENT]: { type: [{ contractDetail: { type: mongoose.Types.ObjectId, ref: "Contract" }, status: { type: String, enum: contractStatus, required: true, default: contractStatus.AVAILABLE }, startDate:{ type: Date}, payments: { type: [mongoose.Types.ObjectId], ref: "Payment" }, cashkick: {type: mongoose.Types.ObjectId, ref: "Cashkick" } }], required: false }
+        [UserRole.RECIPIENT]: { type: [{ contractDetail: { type: mongoose.Types.ObjectId, ref: "Contract" }, status: { type: String, enum: contractStatus, required: true, default: contractStatus.AVAILABLE }, startDate: { type: Date }, payments: { type: [mongoose.Types.ObjectId], ref: "Payment" }, cashkick: { type: mongoose.Types.ObjectId, ref: "Cashkick" } }], required: false }
     }
+}, {
+    timestamps: true
 })
 
 
