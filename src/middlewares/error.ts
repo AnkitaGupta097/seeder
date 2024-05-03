@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError";
 import mongoose from "mongoose";
 import httpStatus from 'http-status-codes'
 import ValidationError from "../utils/ValidationError";
+import logger from "../logger";
 
 const errorConverter = (err: Error, req: Request, res: Response, next: NextFunction) => {
     let error = err;
@@ -27,7 +28,7 @@ const errorHandler = (err: ApiError | ValidationError, req: Request, res: Respon
     };
 
     res.status(statusCode).json(response);
-    console.error(err)
+    logger.error(err)
 };
 
 export { errorConverter, errorHandler };

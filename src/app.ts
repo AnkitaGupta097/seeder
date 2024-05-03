@@ -5,6 +5,7 @@ import get404 from './controllers/error';
 import bodyParser from 'body-parser';
 import dotenv from "dotenv";
 import { errorConverter, errorHandler } from './middlewares/error';
+import logger from './logger';
 
 dotenv.config()
 const app = express()
@@ -21,7 +22,7 @@ app.use(errorHandler)
 
 mongoConnect().then(() => {
     app.listen(3000, () => {
-        console.log("server is listening on port 3000")
+        logger.info("server is listening on port 3000")
     })
 })
-    .catch(err => console.log("error in connecting to mongodb" + err));
+    .catch(err => logger.error("error in connecting to mongodb" + err));
