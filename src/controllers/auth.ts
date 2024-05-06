@@ -11,16 +11,16 @@ const login = catchAsync((req: Request, res: Response) => {
     const email = req.body.email;
     const password = req.body.password;
     let loggedUser: any;
-
     return User.findOne({ email }).then((user) => {
+
         if (!user) {
-            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid user email")
+            return Promise.reject(new ApiError(httpStatus.BAD_REQUEST, "Invalid user email"))
         }
         loggedUser = user
         return bcrypt.compare(password, user.password)
     }).then((isMatched) => {
         if (!isMatched) {
-            throw new ApiError(httpStatus.BAD_REQUEST, "Invalid user password")
+            return Promise.reject(new ApiError(httpStatus.BAD_REQUEST, "Invalid user password"))
         }
         const token = authUtil.createJWTToken({ userId: loggedUser._id, role: loggedUser.role })
 

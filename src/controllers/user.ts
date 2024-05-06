@@ -37,6 +37,7 @@ const registerUser = catchAsync((req: Request, res: Response) => {
         return user.save()
     }).then((user) => {
         const userResponse = {
+            _id: user._id,
             email: user.email,
             name: user.name,
             role: user.role

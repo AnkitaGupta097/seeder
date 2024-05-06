@@ -15,12 +15,17 @@ const addNewPayment = catchAsync((req: Request, res: Response) => {
     let newAddedPaymentData: any;
 
     return Contract.find({ _id: contract }).then((contract) => {
+
+        if (!contract?.length) {
+            return Promise.reject(new ApiError(httpStatus.NOT_FOUND, "contract id not found"))
+        }
+
         const payment = new Payment({
             dueDate: convertToDate(dueDate),
             expectedAmount,
             outstandingAmount,
             status,
-            contract,
+            contract: contract[0],
             user: userId
         })
         return payment.save()

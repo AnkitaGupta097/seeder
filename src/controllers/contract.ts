@@ -87,7 +87,7 @@ const getContractDetail = catchAsync((req: Request, res: Response) => {
   const filteredContract = loggedInUser.contracts?.[loggedInUser.role].find((contract: any) => contract.contractDetail == contractId)
 
   if (!filteredContract) {
-    throw new ApiError(httpStatus.NOT_FOUND, "contract id not found")
+    return Promise.reject(new ApiError(httpStatus.NOT_FOUND, "contract id not found"))
   }
 
   return User.populate(filteredContract, pathsToInclude).then((contract) => res.status(200).json(contract))

@@ -26,3 +26,4 @@ app.use(error_2.errorHandler);
     });
 })
     .catch(err => logger_1.default.error("error in connecting to mongodb" + err));
+exports.default = app;
