@@ -11,10 +11,9 @@ const addNewCashkick = [
         }
         return true
     }),
-    body("contracts").isArray({ min: 1 }).custom((contracts, { req }) => {
+    body("contractIds").isArray({ min: 1 }).custom((contracts, { req }) => {
         //@ts-ignore
         const loggedInUser = req.user
-
         const availableContracts = loggedInUser.contracts?.[UserRole.RECIPIENT].filter((userContract: any) => contracts.includes(userContract.contractDetail.toString()) && userContract.status == contractStatus.AVAILABLE)?.map((c: any) => c.contractDetail.toString())
         if (availableContracts?.length != contracts?.length) {
             const nonAvailableContracts = contracts?.filter((cId: string) => !availableContracts.includes(cId))

@@ -6,8 +6,9 @@ import bodyParser from 'body-parser';
 import dotenv from "dotenv";
 import { errorConverter, errorHandler } from './middlewares/error';
 import logger from './logger';
+import mongoose from 'mongoose';
 
-dotenv.config()
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 const app = express()
 
 app.use(bodyParser.urlencoded())
@@ -20,9 +21,13 @@ app.use(get404);
 app.use(errorConverter)
 app.use(errorHandler)
 
+mongoose.set({ debug: true })
+
 mongoConnect().then(() => {
-    app.listen(3000, () => {
-        logger.info("server is listening on port 3000")
+    process.env.NODE_ENV != 'test' && app.listen(process.env.PORT, () => {
+        logger.info("server is listening on port " + process.env.PORT)
     })
 })
     .catch(err => logger.error("error in connecting to mongodb" + err));
+
+export default app

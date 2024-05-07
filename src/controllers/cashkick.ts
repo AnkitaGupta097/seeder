@@ -49,7 +49,7 @@ const getCashkick = catchAsync((req: Request, res: Response) => {
     const loggedInUser = req.user
 
     const id = req.params.id;
-    return Cashkick.find({ user: loggedInUser._id, _id: id }).then((cashkick) => { if (!cashkick) { throw new ApiError(httpStatus.NOT_FOUND, `cashkick id ${id} not found`) } res.status(200).json(cashkick) })
+    return Cashkick.find({ user: loggedInUser._id, _id: id }).then((cashkick) => { if (!cashkick?.length) { throw new ApiError(httpStatus.NOT_FOUND, `cashkick id ${id} not found`) } res.status(200).json(cashkick[0]) })
 
 })
 

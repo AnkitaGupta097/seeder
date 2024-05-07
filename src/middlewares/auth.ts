@@ -13,7 +13,7 @@ const isRoleAuth = (...roles: UserRole[]) => {
 
         const authHeader = req.get("Authorization")
         if (!authHeader) {
-            throw new ApiError(httpStatus.UNAUTHORIZED, "Not authenticated'. please login to access")
+            return Promise.reject(new ApiError(httpStatus.UNAUTHORIZED, "Not authenticated'. please login to access"))
         }
 
         const token = authHeader.split(' ')[1];
@@ -22,14 +22,14 @@ const isRoleAuth = (...roles: UserRole[]) => {
         decodedToken = jwt.verify(token, secretKey);
 
         if (!decodedToken) {
-            throw new ApiError(httpStatus.UNAUTHORIZED, "Not authenticated")
+            return Promise.reject(new ApiError(httpStatus.UNAUTHORIZED, "Not authenticated"))
         }
 
         if (!roles.includes(decodedToken.role)) {
-            throw new ApiError(httpStatus.FORBIDDEN, "Unauthorized access")
+            return Promise.reject(new ApiError(httpStatus.FORBIDDEN, "Unauthorized access"))
         }
 
-        User.findById(decodedToken.userId).then((user) => {
+        return User.findById(decodedToken.userId).then((user) => {
             //@ts-ignores
             req.user = user;
             next();
