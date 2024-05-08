@@ -7,6 +7,8 @@ import catchAsync from "../utils/catchAsync"
 import ApiError from "../utils/ApiError"
 import httpStatus from 'http-status-codes';
 import { getSortAndPagination } from '../utils/util';
+import { plainToClass } from "class-transformer"
+import { CashkickDTO } from "../dtos/CashkickDTO"
 
 const addNewCashkick = catchAsync((req: Request, res: Response) => {
     const { name, totalAmount, totalFinanced, contractIds } = req.body
@@ -40,7 +42,10 @@ const addNewCashkick = catchAsync((req: Request, res: Response) => {
             }
         );
     }).then(() => {
-        res.status(201).json(newAddedCashkick)
+        const cashkickDto = plainToClass(CashkickDTO, newAddedCashkick.toObject(), {
+            excludeExtraneousValues: true
+        })
+        res.status(201).json(cashkickDto)
     })
 })
 
@@ -49,7 +54,15 @@ const getCashkick = catchAsync((req: Request, res: Response) => {
     const loggedInUser = req.user
 
     const id = req.params.id;
-    return Cashkick.find({ user: loggedInUser._id, _id: id }).then((cashkick) => { if (!cashkick?.length) { throw new ApiError(httpStatus.NOT_FOUND, `cashkick id ${id} not found`) } res.status(200).json(cashkick[0]) })
+    return Cashkick.find({ user: loggedInUser._id, _id: id }).then((cashkick) => {
+        if (!cashkick?.length) {
+            return Promise.reject(new ApiError(httpStatus.NOT_FOUND, `cashkick id ${id} not found`))
+        }
+        const cashkickDto = plainToClass(CashkickDTO, cashkick[0].toObject(), {
+            excludeExtraneousValues: true
+        })
+        res.status(200).json(cashkickDto)
+    })
 
 })
 
@@ -59,7 +72,12 @@ const getCashkicks = catchAsync((req: Request, res: Response) => {
     const contractIds = (req.query.contractIds as string)?.split(",") || []
     const { skip, pageSize, sortObj } = getSortAndPagination(req);
 
-    return Cashkick.find({ user: loggedInUser._id, ...(contractIds.length && { "contracts": { $elemMatch: { "_id": { $in: contractIds } } } }) }).sort(sortObj).skip(skip).limit(pageSize).then((cashkicks) => res.status(200).json(cashkicks))
+    return Cashkick.find({ user: loggedInUser._id, ...(contractIds.length && { "contracts": { $elemMatch: { "_id": { $in: contractIds } } } }) }).sort(sortObj).skip(skip).limit(pageSize).then((cashkicks) => {
+        const cashkickDtos = plainToClass(CashkickDTO, cashkicks, {
+            excludeExtraneousValues: true
+        })
+        res.status(200).json(cashkickDtos)
+    })
 })
 
 

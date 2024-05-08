@@ -39,7 +39,7 @@ describe("user routes", () => {
             .then((response: any) => {
                 expect(response.statusCode).toBe(201);
                 expect(response.body.email).toBe("newemail@gmail.com");
-                expect(response.body._id).toBeDefined();
+                expect(response.body.id).toBeDefined();
             })
 
     })

@@ -1,3 +1,5 @@
+import "reflect-metadata"; // required for class-transformer library
+
 import express from 'express'
 import mongoConnect from './database';
 import routes from './routes/v1';
@@ -6,7 +8,7 @@ import bodyParser from 'body-parser';
 import dotenv from "dotenv";
 import { errorConverter, errorHandler } from './middlewares/error';
 import logger from './logger';
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 const app = express()
@@ -20,8 +22,6 @@ app.use(get404);
 
 app.use(errorConverter)
 app.use(errorHandler)
-
-mongoose.set({ debug: true })
 
 mongoConnect().then(() => {
     process.env.NODE_ENV != 'test' && app.listen(process.env.PORT, () => {
