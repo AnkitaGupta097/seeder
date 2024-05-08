@@ -14,11 +14,11 @@ export const cashkickSchema = new mongoose.Schema({
         required: true,
     },
     totalAmount: {
-        type: mongoose.Types.Decimal128,
+        type: Number,
         required: true
     },
     totalFinanced: {
-        type: mongoose.Types.Decimal128,
+        type: Number,
         required: true
     },
     contracts: {

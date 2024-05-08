@@ -4,6 +4,8 @@ import User from "../models/user";
 import catchAsync from "../utils/catchAsync";
 import httpStatus from 'http-status-codes';
 import ApiError from "../utils/ApiError";
+import { plainToClass } from "class-transformer";
+import { UserDTO } from "../dtos/UserDTO";
 
 const getUserDetail = catchAsync((req: Request, res: Response) => {
     const userId = req.params.userId;
@@ -11,12 +13,14 @@ const getUserDetail = catchAsync((req: Request, res: Response) => {
     const user = req.user
 
     if (userId != user._id.toString()) {
-        throw new ApiError(httpStatus.NOT_FOUND, `${userId} user not found`)
+        return Promise.reject(new ApiError(httpStatus.NOT_FOUND, `${userId} user not found`))
     }
-
+    const userDto = plainToClass(UserDTO, user.toObject(), {
+        excludeExtraneousValues: true
+    })
     res
         .status(200)
-        .json(user);
+        .json(userDto);
 
 })
 
@@ -36,13 +40,10 @@ const registerUser = catchAsync((req: Request, res: Response) => {
         })
         return user.save()
     }).then((user) => {
-        const userResponse = {
-            _id: user._id,
-            email: user.email,
-            name: user.name,
-            role: user.role
-        }
-        res.status(201).json(userResponse);
+        const userDto = plainToClass(UserDTO, user.toObject(), {
+            excludeExtraneousValues: true
+        })
+        res.status(201).json(userDto);
     })
 })
 
@@ -62,7 +63,12 @@ const updatePassword = catchAsync((req: Request, res: Response) => {
                 userDetail.password = hashedPassword
                 return userDetail.save()
             })
-            .then(user => res.status(201).json(user))
+            .then(user => {
+                const userDto = plainToClass(UserDTO, user.toObject(), {
+                    excludeExtraneousValues: true
+                })
+                res.status(201).json(userDto)
+            })
     })
 })
 

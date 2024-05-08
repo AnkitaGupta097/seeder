@@ -42,7 +42,7 @@ describe("cashkick routes", () => {
             .send(cashkick)
             .then((response: any) => {
                 expect(response.statusCode).toBe(201);
-                expect(response.body._id).toBeDefined();
+                expect(response.body.id).toBeDefined();
                 expect(response.body.name).toEqual("cashkick1");
                 newCashkick = response.body
             })
@@ -68,7 +68,6 @@ describe("cashkick routes", () => {
     it('GET /cashkicks/', async () => {
         const existsingCashkicks = await Cashkick.find({ user: user._id }).countDocuments()
 
-
         await httpRequest
             .get(`/v1/cashkicks`)
             .set("Authorization", `Bearer ${token}`)
@@ -81,11 +80,11 @@ describe("cashkick routes", () => {
 
     it('GET /cashkicks/:id', async () => {
         await httpRequest
-            .get(`/v1/cashkicks/${newCashkick._id}`)
+            .get(`/v1/cashkicks/${newCashkick.id}`)
             .set("Authorization", `Bearer ${token}`)
             .then((response: any) => {
                 expect(response.statusCode).toBe(200);
-                expect(response.body._id).toBe(newCashkick._id);
+                expect(response.body.id).toBe(newCashkick.id);
             })
 
     })

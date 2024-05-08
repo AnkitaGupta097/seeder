@@ -7,6 +7,8 @@ import catchAsync from "../utils/catchAsync"
 import ApiError from "../utils/ApiError"
 import httpStatus from 'http-status-codes';
 import { getSortAndPagination } from "../utils/util"
+import { PaymentDTO } from "../dtos/PaymentDTO"
+import { plainToClass } from "class-transformer"
 
 
 const addNewPayment = catchAsync((req: Request, res: Response) => {
@@ -43,8 +45,12 @@ const addNewPayment = catchAsync((req: Request, res: Response) => {
                 arrayFilters: [{ 'elem.contractDetail': contract }] // Filter to match contract IDs
             }
         );
+
     }).then(() => {
-        res.status(201).json(newAddedPaymentData)
+        const payment = plainToClass(PaymentDTO, newAddedPaymentData.toObject(), {
+            excludeExtraneousValues: true
+        });
+        res.status(201).json(payment)
     })
 
 })
@@ -54,7 +60,15 @@ const getPayment = catchAsync((req: Request, res: Response) => {
     const loggedInUser = req.user
 
     const id = req.params.id;
-    return Payment.findOne({ user: loggedInUser._id, _id: id }).then((payment) => { if (!payment) { throw new ApiError(httpStatus.NOT_FOUND, `paymeny id ${id} not found`) } res.status(200).json(payment) })
+    return Payment.findOne({ user: loggedInUser._id, _id: id }).then((payment) => {
+        if (!payment) { return Promise.reject(new ApiError(httpStatus.NOT_FOUND, `paymeny id ${id} not found`)) }
+
+        const paymentDTO = plainToClass(PaymentDTO, payment.toObject(), {
+            excludeExtraneousValues: true
+        });
+
+        res.status(200).json(paymentDTO)
+    })
 
 })
 
@@ -65,7 +79,14 @@ const getPayments = catchAsync((req: Request, res: Response) => {
     const { skip, pageSize, sortObj } = getSortAndPagination(req);
 
 
-    return Payment.find({ user: loggedInUser._id, ...(contractIds.length && { "contract._id": { $in: contractIds } }) }).sort(sortObj).skip(skip).limit(pageSize).then((payment) => res.status(200).json(payment))
+    return Payment.find({ user: loggedInUser._id, ...(contractIds.length && { "contract._id": { $in: contractIds } }) }).sort(sortObj).skip(skip).limit(pageSize).then((payments) => {
+
+        const paymentDTOs = plainToClass(PaymentDTO, payments, {
+            excludeExtraneousValues: true
+        });
+
+        res.status(200).json(paymentDTOs)
+    })
 })
 
 

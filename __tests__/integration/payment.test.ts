@@ -55,7 +55,7 @@ describe("Payment routes", () => {
             .send(payment)
             .then((response: any) => {
                 expect(response.statusCode).toBe(201);
-                expect(response.body._id).toBeDefined();
+                expect(response.body.id).toBeDefined();
                 newPayment = response.body
             })
     })
@@ -88,18 +88,18 @@ describe("Payment routes", () => {
             .then((response: any) => {
                 expect(response.statusCode).toBe(200);
                 expect(response.body.length).toBe(1);
-                expect(response.body[0]?._id).toEqual(newPayment?._id);
+                expect(response.body[0]?.id).toEqual(newPayment?.id);
             })
 
     })
 
     it('GET /payments/:id', async () => {
         await httpRequest
-            .get(`/v1/payments/${newPayment._id}`)
+            .get(`/v1/payments/${newPayment.id}`)
             .set("Authorization", `Bearer ${token}`)
             .then((response: any) => {
                 expect(response.statusCode).toBe(200);
-                expect(response.body._id).toBe(newPayment._id);
+                expect(response.body.id).toBe(newPayment.id);
             })
 
     })

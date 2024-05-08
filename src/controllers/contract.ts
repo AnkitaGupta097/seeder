@@ -6,6 +6,9 @@ import catchAsync from "../utils/catchAsync";
 import ApiError from "../utils/ApiError";
 import httpStatus from 'http-status-codes';
 import { getSortAndPagination } from "../utils/util";
+import { plainToClass } from "class-transformer";
+import { ContractDTO } from "../dtos/ContractDTO";
+import { RecipientContractDTO } from "../dtos/RecipientContractDTO";
 
 
 const addNewContract = catchAsync((req: Request, res: Response) => {
@@ -26,7 +29,9 @@ const addNewContract = catchAsync((req: Request, res: Response) => {
   })
   return contract.save()
     .then((contract) => {
-      res.status(201).json(contract.toObject());
+      res.status(201).json(plainToClass(ContractDTO, contract.toObject(), {
+        excludeExtraneousValues: true
+      }));
       return contract
     }).then((newContract) => {
       contractOwner.contracts.PROVIDER.push(newContract)
@@ -48,9 +53,12 @@ const getUserContracts = catchAsync((req: Request, res: Response) => {
   const loggedInUser = req.user
 
   if (loggedInUser.role === UserRole.PROVIDER) {
+    const contracts = plainToClass(ContractDTO, loggedInUser.contracts?.PROVIDER, {
+      excludeExtraneousValues: true
+    })
     res
       .status(200)
-      .json(loggedInUser.contracts?.PROVIDER)
+      .json(contracts)
   } else {
     const filteredContracts = loggedInUser.contracts?.[UserRole.RECIPIENT].filter((contract: any) => {
       let result = true;
@@ -67,9 +75,13 @@ const getUserContracts = catchAsync((req: Request, res: Response) => {
       path: 'contractDetail',
     }).
       then((contracts: any) => {
+        const contractdTOS = plainToClass(RecipientContractDTO, contracts, {
+          excludeExtraneousValues: true
+        })
+
         res
           .status(200)
-          .json(contracts)
+          .json(contractdTOS)
       })
   }
 })
@@ -90,7 +102,12 @@ const getContractDetail = catchAsync((req: Request, res: Response) => {
     return Promise.reject(new ApiError(httpStatus.NOT_FOUND, "contract id not found"))
   }
 
-  return User.populate(filteredContract, pathsToInclude).then((contract) => res.status(200).json(contract))
+  return User.populate(filteredContract, pathsToInclude).then((contract) => {
+    const contractdTO = plainToClass(RecipientContractDTO, contract, {
+      excludeExtraneousValues: true
+    });
+    res.status(200).json(contractdTO)
+  })
 })
 
 

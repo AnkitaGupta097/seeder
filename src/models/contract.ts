@@ -21,15 +21,15 @@ export const contractSchema = new mongoose.Schema({
         required: true
     },
     perPayment: {
-        type: mongoose.Types.Decimal128,
+        type: Number,
         required: true
     },
     totalAmount: {
-        type: mongoose.Types.Decimal128,
+        type: Number,
         required: true,
     },
     totalFinanced: {
-        type: mongoose.Types.Decimal128,
+        type: Number,
         required: true,
     }
 }, {

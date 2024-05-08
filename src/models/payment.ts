@@ -8,11 +8,11 @@ export const paymentSchema = new mongoose.Schema({
         required: true,
     },
     expectedAmount: {
-        type: mongoose.Types.Decimal128,
+        type: Number,
         required: true,
     },
     outstandingAmount: {
-        type: mongoose.Types.Decimal128,
+        type: Number,
         required: true
     },
     status: {

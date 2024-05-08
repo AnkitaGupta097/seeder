@@ -42,8 +42,8 @@ describe("contract routes", () => {
                 .then((response: any) => {
                     expect(response.statusCode).toBe(201);
                     expect(response.body.name).toBe(newContract.name);
-                    expect(response.body._id).toBeDefined();
-                    newContract.id = response.body._id
+                    expect(response.body.id).toBeDefined();
+                    newContract.id = response.body.id
                     return Promise.resolve({})
                 })
 
@@ -58,7 +58,7 @@ describe("contract routes", () => {
                     expect(response.statusCode).toBe(200);
                     expect(response.body?.length).toBe(1);
                     expect(response.body[0]?.name).toEqual(newContract.name);
-                    expect(response.body[0]?._id).toEqual(newContract.id);
+                    expect(response.body[0]?.id).toEqual(newContract.id);
                 })
 
         })
@@ -97,7 +97,7 @@ describe("contract routes", () => {
                 .then((response: any) => {
                     expect(response.statusCode).toBe(200);
                     expect(response.body).toBeDefined();
-                    expect(response.body?.contractDetail?._id).toEqual(contract?._id.toString());
+                    expect(response.body?.contractDetail?.id).toEqual(contract?._id.toString());
                 })
         })
 
